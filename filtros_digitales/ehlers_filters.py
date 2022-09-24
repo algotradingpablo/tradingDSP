@@ -45,21 +45,31 @@ class HighPassFilter(FilterOutput):
     def __get_hp_filters__(self):
         self.hp_in_series = self.Filter()
         self.hp_single_output, _ = self.hp_in_series(self.price)
+        
+@dataclass 
+class BandPassFilter(FilterOutput):
+    pc: int = 20
+    bw: float = 1.0
+
+    def __get_bp_filters__(self):
+        self.bp_in_series = self.Filter()
+        self.bp_single_output, _ = self.bp_in_series(self.price)
 
 @dataclass
 class EhlersFirstOrderHP(HighPassFilter):
     alpha_key: int = 1
-    mult: int = f(1)
+    mult: int = 1
     
     def __post_init__(self):
         alpha: float = self.__get_alpha__()
         self.NumeratorZcoefs: list[float] = [(1 + alpha), -(1 + alpha)]
         self.DenominatorZcoefs: list[float] = [2, -2*(1 - alpha)]
+        self.__get_hp_filters__()
 
     def output(self):
         return self.hp_single_output
 
-@dataclass   
+@dataclass
 class EhlersSecondOrderHP(HighPassFilter):
     alpha_key: int = f(1)
     mult: float = np.sqrt(2)/2
@@ -110,3 +120,20 @@ class EhlersRoofingFilter(EhlersSecondOrderHP, SuperSmoother):
     
     def output(self):
         return self.roof_output
+
+@dataclass 
+class EhlersBandPass(BandPassFilter):
+    def __post_init__(self):
+        pi = np.pi
+        center_period = self.fs*self.pc
+        
+        beta1 = np.cos(2*pi/center_period)
+        gamma1 = 1 / np.cos(self.bw*2*pi/center_period)
+        alpha1 = gamma1 - np.sqrt(gamma1**2 - 1)
+    
+        self.NumeratorZcoefs = [0.5*(1-alpha1), 0, -0.5*(1-alpha1)]
+        self.DenominatorZcoefs = [1, -beta1*(1+alpha1), alpha1]
+        self.__get_bp_filters__()
+    
+    def output(self):
+        return self.bp_single_output

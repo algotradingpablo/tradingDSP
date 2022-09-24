@@ -142,8 +142,8 @@ def EhlersBandPass(pc: int = 20, fs: int = 1) -> Filter:
     alpha = gamma - np.sqrt(gamma**2 - 1)
     
     filt = Filter(name = "Ehlers Band-Pass filter", 
-                  NumeratorZcoefs = [0.5*(1-alpha),0,-0.5*(1-alpha)], 
-                  DenominatorZcoefs = [1,-beta*(1+alpha),alpha], 
+                  NumeratorZcoefs = [0.5*(1-alpha), 0, -0.5*(1-alpha)], 
+                  DenominatorZcoefs = [1, -beta*(1+alpha), alpha], 
                   comments = "Pass Band is 30 percent of the center period")     
     return filt
 
@@ -210,4 +210,17 @@ def Supersmoother(pc: int = 10, fs: int = 1) -> Filter:
                   comments = "")
     return filt
 
+def SevenHilbertTransform() -> Filter:
+    filt = Filter(name = "7-elements Hilbert Transform", 
+                  NumeratorZcoefs = [1, 0, 3, 0, -3, 0, -1], 
+                  DenominatorZcoefs = [4],
+                  comments = "Truncated")   
+    return filt
+
+def FifteenHilbertTransform() -> Filter:
+    filt = Filter(name = "15-elements Hilbert Transform", 
+                  NumeratorZcoefs = [15, 0, 21, 0, 35, 0, 105, 0, -105, 0, -35, 0, -21, 0, -15], 
+                  DenominatorZcoefs = [176],
+                  comments = "Truncated")
+    return filt 
 # More filters will be added in the future!
